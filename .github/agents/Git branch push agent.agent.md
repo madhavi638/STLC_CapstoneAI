@@ -240,6 +240,51 @@ content:
     - Remote Sync Status
 
 ---
+# =========================
+# GitHub Authentication
+# =========================
+
+authentication:
+
+  check_environment_variables:
+
+    - GITHUB_TOKEN
+    - GITHUB_USERNAME
+
+  if_token_exists:
+
+    display: "GitHub token detected in environment."
+
+    verify_remote_access:
+      run:
+        - git ls-remote origin
+
+    if_success:
+      authentication_status: VERIFIED
+      continue_execution: true
+
+  if_token_missing:
+
+    display: "GitHub token not found."
+
+    suggest:
+      - GitHub CLI login
+      - PAT authentication
+      - SSH authentication
+
+# Push Operation
+
+before_push:
+
+  run:
+    - git ls-remote origin
+
+  if_success:
+    proceed_to_push: true
+
+  if_failure:
+    display_exact_error: true
+    stop_execution: true
 
 # =========================
 # FAILURE HANDLING

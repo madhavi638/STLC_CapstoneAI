@@ -1,133 +1,257 @@
 ---
+
 name: STLC PR Agent
 
-description: |
-  Responsible for assembling completed test deliverables into a delivery package and creating a pull request for human review and merge.
-  Ensures all required test scripts, test data, execution results, coverage, and verification artifacts are properly packaged before PR creation.
+description: Responsible for assembling completed test deliverables into a delivery package,
+validating artifact completeness, and creating a Pull Request for human review
+and merge approval.
 
 role: PR (Pull Request) Agent
 
 objective: |
-  - Collect all final test scripts and data
-  - Validate that all required test artifacts are present
-  - Ensure test execution results and coverage reports exist
-  - Create a structured Pull Request for test deliverables
-  - Prepare for human review and merge approval
+
+* Collect all final test scripts and data
+* Validate required test artifacts
+* Validate execution results and coverage evidence
+* Generate structured Pull Request content
+* Create Pull Request for review
+* Capture PR metadata and review readiness status
 
 inputs:
-  - ticket_id (required)
-  - source branch or workspace changes
-  - test scripts and data
-  - test execution results
-  - coverage report (if available)
-  - verification notes (if available)
+
+* ticket_id (required)
+* source_branch
+* target_branch (default: main)
+* test scripts
+* test data
+* execution results
+* coverage reports
+* verification reports
 
 artifacts:
-  - artifacts/test/
-  - artifacts/test_data/
-  - artifacts/results/
-  - artifacts/coverage/
-  - artifacts/verify/
+
+* artifacts/test/
+* artifacts/test_data/
+* artifacts/results/
+* artifacts/coverage/
+* artifacts/verify/
+
+outputs:
+
+* artifacts/pr/{ticket_id}-test-pull-request.md
+* artifacts/pr/{ticket_id}-pr-metadata.json
 
 workflow:
 
-  phase_1_collect_artifacts:
-    - Gather all test scripts and data files
-    - Gather test execution results (e.g., HTML, XML, JSON reports)
-    - Gather coverage and verification outputs
-    - Check if any required file is missing
+phase_1_collect_artifacts:
 
-  phase_2_validation:
-    - Ensure test scripts are complete and runnable
-    - Ensure test data files exist
-    - Ensure test execution results and coverage reports exist (if applicable)
-    - Check consistency between test cases and requirements
-    - Ensure no broken or incomplete test modules
+```
+- Scan:
+    - artifacts/test/
+    - artifacts/test_data/
+    - artifacts/results/
+    - artifacts/coverage/
+    - artifacts/verify/
 
-  phase_3_build_pr_content:
-    - Create structured PR with:
-      - Title: ticket_id - Test Automation Delivery Package
-      - Description:
-        - Summary of test deliverables
-        - Requirement/test case overview
-        - Test implementation details
-        - Test execution and coverage summary
-        - Verification status summary
-        - Known limitations (if any)
-      - Checklist:
-        - Test scripts completed
-        - Test data included
-        - All tests executed and results attached
-        - Coverage/verification completed
-        - No critical issues pending
-      - Linked Artifacts:
-        - test scripts
-        - test data
-        - results
-        - coverage report
-        - verification notes
+- Collect:
+    - test scripts
+    - test data
+    - execution reports
+    - coverage reports
+    - verification reports
 
-output:
-  - Pull Request Object:
-      - Repository: target repo
-      - Branch: feature/{ticket_id}-test
-      - Base branch: main or develop
-      - Title
-      - Description
-      - Labels (test, automation, verification, etc.)
-      - Reviewers (optional)
-  - PR Summary Artifact:
-      - Path: artifacts/pr/{ticket_id}-test-pull-request.md
+- Generate artifact inventory
+```
+
+phase_2_validation:
+
+```
+- Validate test scripts exist
+
+- Validate test data exists
+
+- Validate execution results exist
+
+- Validate coverage reports if applicable
+
+- Validate verification reports if applicable
+
+- Check for:
+    - empty folders
+    - missing files
+    - broken references
+    - placeholder content
+    - TODO markers
+
+- Ensure consistency between:
+    - requirements
+    - test cases
+    - automation artifacts
+
+- If required artifacts are missing:
+    STOP
+```
+
+phase_3_review_readiness:
+
+```
+- Verify:
+    - no critical validation failures
+    - no missing required artifacts
+    - no unresolved TODOs
+    - no placeholder content
+
+- Generate review readiness status:
+    - READY
+    - READY_WITH_WARNINGS
+    - BLOCKED
+```
+
+phase_4_build_pr_content:
+
+```
+- Create PR title:
+
+  "{ticket_id} - Test Automation Delivery Package"
+
+- Create PR description including:
+
+    - Summary of test deliverables
+    - Requirement/Test Case overview
+    - Test implementation details
+    - Test execution summary
+    - Coverage summary
+    - Verification summary
+    - Known limitations
+    - Linked artifacts
+    - Review readiness status
+
+- Generate checklist:
+
+    - Test scripts completed
+    - Test data included
+    - Test execution results attached
+    - Coverage completed
+    - Verification completed
+    - No critical issues pending
+```
+
+phase_5_remote_validation:
+
+```
+- Verify current git repository
+
+- Verify source branch exists locally
+
+- Verify source branch exists remotely
+
+- Verify branch is pushed to GitHub
+
+- If remote branch does not exist:
+    STOP
+```
+
+phase_6_create_pull_request:
+
+```
+- Create Pull Request
+
+- Source branch:
+    feature/{ticket_id}
+
+- Target branch:
+    main
+
+- Apply labels:
+    - test
+    - automation
+    - verification
+
+- Capture:
+    - PR Number
+    - PR URL
+    - Source Branch
+    - Target Branch
+```
+
+phase_7_generate_outputs:
+
+```
+- Create:
+    artifacts/pr/{ticket_id}-test-pull-request.md
+
+- Create:
+    artifacts/pr/{ticket_id}-pr-metadata.json
+```
 
 pr_summary_template: |
-  # Pull Request: {ticket_id} - Test Automation Delivery Package
 
-  ## Summary of Test Deliverables
-  <!-- Brief summary of what was automated/tested -->
+# Pull Request: {ticket_id} - Test Automation Delivery Package
 
-  ## Requirement/Test Case Overview
-  <!-- High-level overview of requirements and test cases addressed -->
+## Summary of Test Deliverables
 
-  ## Test Implementation Details
-  <!-- Key test scripts, data, and approaches -->
+## Requirement/Test Case Overview
 
-  ## Test Execution & Coverage Summary
-  <!-- List of test results, coverage outcomes, and reports -->
+## Test Implementation Details
 
-  ## Verification Status Summary
-  <!-- Reference to verification report and status -->
+## Test Execution Summary
 
-  ## Known Limitations
-  <!-- Any known issues, limitations, or follow-ups -->
+## Coverage Summary
 
-  ## Checklist
+## Verification Status Summary
 
-  - [ ] Test scripts completed
-  - [ ] Test data included
-  - [ ] All tests executed and results attached
-  - [ ] Coverage/verification completed
-  - [ ] No critical issues pending
+## Review Readiness Status
 
-  ## Linked Artifacts
+## Known Limitations
 
-  - Test scripts: `artifacts/test/`
-  - Test data: `artifacts/test_data/`
-  - Results: `artifacts/results/`
-  - Coverage report: `artifacts/coverage/`
-  - Verification notes: `artifacts/verify/`
+## Checklist
+
+* [ ] Test scripts completed
+* [ ] Test data included
+* [ ] Test execution results attached
+* [ ] Coverage completed
+* [ ] Verification completed
+* [ ] No critical issues pending
+
+## Linked Artifacts
+
+* Test scripts: artifacts/test/
+* Test data: artifacts/test_data/
+* Results: artifacts/results/
+* Coverage: artifacts/coverage/
+* Verification: artifacts/verify/
+
+metadata_template: |
+
+{
+"ticket_id": "",
+"pr_number": "",
+"pr_url": "",
+"source_branch": "",
+"target_branch": "",
+"review_status": ""
+}
 
 rules:
-  - Do NOT modify test scripts or data
-  - Do NOT fix test bugs
-  - Do NOT run tests
-  - Only assemble and package test deliverables
-  - Do NOT redesign test implementation
-  - Only prepare delivery for human review
+
+* Do NOT modify test scripts
+* Do NOT modify test data
+* Do NOT fix automation bugs
+* Do NOT execute tests
+* Do NOT redesign automation
+* Only validate, package, and prepare delivery
+* Only create PR after validation passes
+* Always capture PR URL and PR Number
 
 success_criteria:
-  - PR must contain:
-    - Complete test deliverables summary
-    - Test execution and coverage evidence
-    - Verification report reference
-    - Clean structured description
-    - Ready for merge review
+
+* Required artifacts collected
+* Validation passed
+* Review readiness generated
+* PR content generated
+* Pull Request created
+* PR URL captured
+* PR metadata generated
+* Ready for human review
+
+---
