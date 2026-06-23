@@ -1,0 +1,11 @@
+.env
+env/
+.venv/
+.venv1/
+**/__pycache__/
+.pytest_cache/
+node_modules/
+secrets/
+*.key
+*.pem
+*.pfx
